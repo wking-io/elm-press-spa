@@ -20,7 +20,7 @@ add_action( 'rest_api_init', function () {
 	$page_slug_arg = array_merge( $slug_arg, array( 'description' => 'String representing a valid WordPress page slug' ) );
 
 	// Register routes.
-	register_rest_route( 'postlight/v1', '/post', array(
+	register_rest_route( 'elm-press/v1', '/post', array(
 		'methods'  => 'GET',
 		'callback' => 'rest_get_post',
 		'args'     => array(
@@ -28,7 +28,7 @@ add_action( 'rest_api_init', function () {
 		),
 	) );
 
-	register_rest_route( 'postlight/v1', '/page', array(
+	register_rest_route( 'elm-press/v1', '/page', array(
 		'methods'  => 'GET',
 		'callback' => 'rest_get_page',
 		'args'     => array(
@@ -36,7 +36,7 @@ add_action( 'rest_api_init', function () {
 		),
 	) );
 
-	register_rest_route('postlight/v1', '/post/preview', array(
+	register_rest_route('elm-press/v1', '/post/preview', array(
 		'methods'             => 'GET',
 		'callback'            => 'rest_get_post_preview',
 		'args'                => array(
