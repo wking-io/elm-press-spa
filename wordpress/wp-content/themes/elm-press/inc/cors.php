@@ -2,7 +2,10 @@
 /**
  * Allow GET requests from * origin
  * Thanks to https://joshpress.net/access-control-headers-for-the-wordpress-rest-api/
+ *
+ * @package elm-press
  */
+
 add_action( 'rest_api_init', function() {
 
 	remove_filter( 'rest_pre_serve_request', 'rest_send_cors_headers' );

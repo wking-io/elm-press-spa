@@ -1,6 +1,13 @@
 <?php
+/**
+ * Refistered Menus
+ *
+ * @package elm-press
+ */
 
-// Add About Us menu
+/**
+ * Add About Us menu.
+ */
 function register_menus() {
 	register_nav_menu( 'header-menu', __( 'Header Menu', 'postlight-headless-wp' ) );
 }

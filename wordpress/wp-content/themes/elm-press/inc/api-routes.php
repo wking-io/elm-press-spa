@@ -130,10 +130,11 @@ function get_content_by_slug( $slug, $type = 'post' ) {
 		'numberposts' => 1,
 	);
 
-	$post_search_results = get_posts( $args );
+	$query               = new WP_Query( $args );
+	$post_search_results = $query->posts;
 
-	if ( ! $post_search_results ) { // Maybe the slug changed?
-		// Check wp_postmeta table for old slug.
+	if ( ! $post_search_results ) { // maybe the slug changed?
+		// check wp_postmeta table for old slug.
 		$args                = array(
 			'meta_query' => array(
 				array(

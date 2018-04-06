@@ -1,7 +1,13 @@
 <?php
+/**
+ * Function to deduce frontend origin
+ *
+ * @package elm-press
+ */
 
 /**
  * Placeholder function for determining the frontend origin.
+ *
  * @TODO Determine the headless client's URL based on the current environment.
  *
  * @return str Frontend origin URL, i.e., http://localhost:3000.
