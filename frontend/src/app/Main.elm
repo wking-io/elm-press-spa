@@ -30,7 +30,7 @@ initCmd =
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model "friend", initCmd )
+    ( Model "waiting...", initCmd )
 
 
 
@@ -68,7 +68,7 @@ update msg model =
                     ( { model | message = "networkerr" }, Cmd.none )
 
                 Http.BadStatus response ->
-                    ( { model | message = response.body }, Cmd.none )
+                    ( { model | message = "badstatus" }, Cmd.none )
 
                 Http.BadPayload _ _ ->
                     ( { model | message = "badpayload" }, Cmd.none )
