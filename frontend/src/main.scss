@@ -1,0 +1,24 @@
+html {
+  font-size: 4px;
+}
+
+body {
+  font-size: 4rem;
+}
+
+.container {
+  width: 85vw;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.menu {
+  list-style-type: none;
+  display: flex;
+  margin: 8rem 0 4rem;
+  padding: 0;
+
+  &__item {
+    margin-right: 2rem;
+  }
+}
