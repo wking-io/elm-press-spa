@@ -6,6 +6,8 @@ import Html.Attributes.Extra exposing (innerHtml)
 import Json.Decode as Decode exposing (Decoder)
 import Http
 import Task
+import Data.Welcome as Welcome exposing (Welcome)
+import Data.Link as Link exposing (Link)
 
 
 -- MODEL --
@@ -20,47 +22,14 @@ type alias Model =
     }
 
 
-type alias Welcome =
-    { title : String
-    , content : String
-    }
-
-
-type alias Link =
-    { title : String
-    , link : String
-    }
-
-
 atEndpoint : String -> String
 atEndpoint endpoint =
     "http://127.0.0.1:8080/wp-json" ++ endpoint
 
 
-welcomeDecoder : Decoder Welcome
-welcomeDecoder =
-    Decode.map2 Welcome
-        (Decode.at [ "title", "rendered" ] Decode.string)
-        (Decode.at [ "content", "rendered" ] Decode.string)
-
-
-linkDecoder : Decoder Link
-linkDecoder =
-    Decode.map2 Link
-        (Decode.at [ "title", "rendered" ] Decode.string)
-        (Decode.field "slug" Decode.string)
-
-
-menuItemDecoder : Decoder Link
-menuItemDecoder =
-    Decode.map2 Link
-        (Decode.field "title" Decode.string)
-        (Decode.field "url" Decode.string)
-
-
 menuDecoder : Decoder (List Link)
 menuDecoder =
-    Decode.field "items" (Decode.list menuItemDecoder)
+    Decode.field "items" (Decode.list Link.decoderForMenuItem)
 
 
 initCmd : Cmd Msg
@@ -68,9 +37,9 @@ initCmd =
     Task.attempt FetchData <|
         Task.map5 Model
             (Http.get (atEndpoint "/menus/v1/menus/header-menu") menuDecoder |> Http.toTask)
-            (Http.get (atEndpoint "/elm-press/v1/page?slug=welcome") welcomeDecoder |> Http.toTask)
-            (Http.get (atEndpoint "/wp/v2/pages?_embed") (Decode.list linkDecoder) |> Http.toTask)
-            (Http.get (atEndpoint "/wp/v2/posts?_embed") (Decode.list linkDecoder) |> Http.toTask)
+            (Http.get (atEndpoint "/elm-press/v1/page?slug=welcome") Welcome.decoder |> Http.toTask)
+            (Http.get (atEndpoint "/wp/v2/pages?_embed") (Decode.list Link.decoder) |> Http.toTask)
+            (Http.get (atEndpoint "/wp/v2/posts?_embed") (Decode.list Link.decoder) |> Http.toTask)
             (Task.succeed Nothing)
 
 
