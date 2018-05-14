@@ -1,4 +1,4 @@
-module Util exposing ((=>), error)
+module Util exposing ((=>), error, viewIf)
 
 import Html exposing (Html, main_, text)
 
@@ -17,3 +17,11 @@ infixl 0 =>
 error : a -> Html msg
 error a =
     main_ [] [ text <| toString a ]
+
+
+viewIf : Bool -> Html msg -> Html msg
+viewIf condition content =
+    if condition then
+        content
+    else
+        Html.text ""

@@ -1,21 +1,24 @@
 module Main exposing (main)
 
+import Data.Link exposing (Link)
+import Data.Menu exposing (Menu, MenuItem)
+import Data.Page exposing (Page, Slug)
+import Request.Menu as Menu
+import Request.Page as Page
 import Html exposing (Html, program, h1, h2, ul, li, a, div, main_, nav, text)
 import Html.Attributes exposing (href, class)
 import Html.Attributes.Extra exposing (innerHtml)
 import Json.Decode as Decode exposing (Decoder)
 import Http
 import Task
-import Data.Welcome as Welcome exposing (Welcome)
-import Data.Link as Link exposing (Link)
 
 
 -- MODEL --
 
 
 type alias Model =
-    { menuItems : List Link
-    , welcome : Welcome
+    { menu : Menu
+    , welcome : Page
     , pages : List Link
     , posts : List Link
     , error : Maybe String
@@ -27,25 +30,20 @@ atEndpoint endpoint =
     "http://127.0.0.1:8080/wp-json" ++ endpoint
 
 
-menuDecoder : Decoder (List Link)
-menuDecoder =
-    Decode.field "items" (Decode.list Link.decoderForMenuItem)
-
-
 initCmd : Cmd Msg
 initCmd =
     Task.attempt FetchData <|
         Task.map5 Model
-            (Http.get (atEndpoint "/menus/v1/menus/header-menu") menuDecoder |> Http.toTask)
-            (Http.get (atEndpoint "/elm-press/v1/page?slug=welcome") Welcome.decoder |> Http.toTask)
-            (Http.get (atEndpoint "/wp/v2/pages?_embed") (Decode.list Link.decoder) |> Http.toTask)
-            (Http.get (atEndpoint "/wp/v2/posts?_embed") (Decode.list Link.decoder) |> Http.toTask)
+            (Menu.get |> Http.toTask)
+            (Page.get (Data.Page.Slug "welcome") |> Http.toTask)
+            (Http.get (atEndpoint "/wp/v2/pages?_embed") (Decode.list Data.Link.decoder) |> Http.toTask)
+            (Http.get (atEndpoint "/wp/v2/posts?_embed") (Decode.list Data.Link.decoder) |> Http.toTask)
             (Task.succeed Nothing)
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( (Model [] (Welcome "" "") [] [] Nothing), initCmd )
+    ( (Model (Data.Menu.Menu []) (Page "" "") [] [] Nothing), initCmd )
 
 
 
@@ -56,7 +54,7 @@ view : Model -> Html Msg
 view model =
     div [ class "container" ]
         [ nav []
-            [ ul [ class "menu" ] ((viewMenuItem { title = "Home", link = "http://localhost:3000/" }) :: (List.map viewMenuItem model.menuItems)) ]
+            [ ul [ class "menu" ] ((viewMenuItem { route = "http://localhost:3000/", title = "Home" }) :: (List.map viewMenuItem (Data.Menu.toList model.menu))) ]
         , main_ []
             [ h1 [] [ text model.welcome.title ]
             , div [ innerHtml model.welcome.content ] []
@@ -73,9 +71,9 @@ viewLink ext { title, link } =
     li [] [ a [ href ("http://localhost:3000/" ++ ext ++ link) ] [ text title ] ]
 
 
-viewMenuItem : Link -> Html Msg
-viewMenuItem { title, link } =
-    li [ class "menu__item" ] [ a [ href link ] [ text title ] ]
+viewMenuItem : MenuItem -> Html Msg
+viewMenuItem { route, title } =
+    li [ class "menu__item" ] [ a [ href route ] [ text title ] ]
 
 
 

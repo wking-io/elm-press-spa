@@ -10,14 +10,20 @@
  */
 add_action( 'rest_api_init', function () {
 	// Define API endpoint arguments.
-	$slug_arg      = array(
+	$slug_arg          = array(
 		'validate_callback' => function ( $param, $request, $key ) {
 			return( is_string( $param ) );
 		},
 	);
-	$post_slug_arg = array_merge( $slug_arg, array( 'description' => 'String representing a valid WordPress post slug' ) );
-
-	$page_slug_arg = array_merge( $slug_arg, array( 'description' => 'String representing a valid WordPress page slug' ) );
+	$post_slug_arg     = array_merge( $slug_arg, array( 'description' => 'String representing a valid WordPress post slug' ) );
+	$page_slug_arg     = array_merge( $slug_arg, array( 'description' => 'String representing a valid WordPress page slug' ) );
+	$per_page_arg      = array(
+		'validate_callback' => function ( $param, $request, $key ) {
+			return( is_integer( $param ) );
+		},
+	);
+	$post_per_page_arg = array_merge( $per_page_arg, array( 'description' => 'Int representing the number of posts to get per page for pagination.' ) );
+	$page_per_page_arg = array_merge( $per_page_arg, array( 'description' => 'Int representing the number of pages to get per page for pagination.' ) );
 
 	// Register routes.
 	register_rest_route( 'elm-press/v1', '/post', array(
@@ -28,11 +34,27 @@ add_action( 'rest_api_init', function () {
 		),
 	) );
 
+	register_rest_route( 'elm-press/v1', '/posts', array(
+		'methods'  => 'GET',
+		'callback' => 'rest_get_all_posts',
+		'args'     => array(
+			'per_page' => array_merge( $page_per_page_arg, array( 'required' => false ) ),
+		),
+	) );
+
 	register_rest_route( 'elm-press/v1', '/page', array(
 		'methods'  => 'GET',
 		'callback' => 'rest_get_page',
 		'args'     => array(
 			'slug' => array_merge( $page_slug_arg, array( 'required' => true ) ),
+		),
+	) );
+
+	register_rest_route( 'elm-press/v1', '/pages', array(
+		'methods'  => 'GET',
+		'callback' => 'rest_get_all_pages',
+		'args'     => array(
+			'per_page' => array_merge( $page_per_page_arg, array( 'required' => false ) ),
 		),
 	) );
 
@@ -65,6 +87,16 @@ function rest_get_post( WP_REST_Request $request ) {
 }
 
 /**
+ * Respond to a REST API request to get post data for all posts.
+ *
+ * @param WP_REST_Request $request Request Class holding request data.
+ * @return WP_REST_Response
+ */
+function rest_get_all_posts( WP_REST_Request $request ) {
+	return rest_get_all( $request, 'post', __FUNCTION__ );
+}
+
+/**
  * Respond to a REST API request to get page data.
  *
  * @param WP_REST_Request $request Request Class holding request data.
@@ -72,6 +104,47 @@ function rest_get_post( WP_REST_Request $request ) {
  */
 function rest_get_page( WP_REST_Request $request ) {
 	return rest_get_content( $request, 'page', __FUNCTION__ );
+}
+
+/**
+ * Respond to a REST API request to get page data for all pages.
+ *
+ * @param WP_REST_Request $request Request Class holding request data.
+ * @return WP_REST_Response
+ */
+function rest_get_all_pages( WP_REST_Request $request ) {
+	return rest_get_all( $request, 'page', __FUNCTION__ );
+}
+
+/**
+ * Respond to a REST API request to get post or page data for all posts or pages.
+ * * Returns number of posts based on per_page param
+ * * Doesn't return posts whose status isn't published
+ *
+ * @param WP_REST_Request $request        Request Class holding request data.
+ * @param str             $type           Type argument for expected data.
+ * @param str             $function_name  Function name to show in case of error.
+ * @return WP_REST_Response
+ */
+function rest_get_all( WP_REST_Request $request, $type, $function_name ) {
+	if ( ! in_array( $type, array( 'post', 'page' ), true ) ) {
+		$type = 'post';
+	}
+	$per_page = $request->get_param( 'per_page' );
+	$posts = get_posts_with_count( $type, $per_page );
+	if ( ! $posts ) {
+		return new WP_Error(
+			$function_name,
+			'There were no ' . $type . 's found.',
+			array( 'status' => 404 )
+		);
+	};
+
+	$controller = new WP_REST_Posts_Controller( 'post' );
+	$data       = $controller->prepare_item_for_response( $post, $request );
+	$response   = $controller->prepare_response_for_collection( $data );
+
+	return new WP_REST_Response( $response );
 }
 
 /**

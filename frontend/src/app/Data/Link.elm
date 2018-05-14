@@ -1,4 +1,4 @@
-module Data.Link exposing (Link, decoder, decoderForMenuItem)
+module Data.Link exposing (Link, decoder)
 
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required, requiredAt, decode)
@@ -6,8 +6,19 @@ import Json.Decode.Pipeline exposing (required, requiredAt, decode)
 
 type alias Link =
     { title : String
-    , link : String
+    , route : String
     }
+
+
+type Slug
+    = Slug LinkType Int String
+    | Custom String
+
+
+type LinkType
+    = Page
+    | Post
+    | Category
 
 
 decoder : Decoder Link
@@ -17,8 +28,11 @@ decoder =
         |> required "slug" Decode.string
 
 
-decoderForMenuItem : Decoder Link
-decoderForMenuItem =
-    decode Link
-        |> required "title" Decode.string
-        |> required "url" Decode.string
+toRoute : Slug -> Route
+toRoute slug =
+    case slug of
+        Slug _ _ _ ->
+            Route.Link slug
+
+        Custom url ->
+            Route.Custom url
